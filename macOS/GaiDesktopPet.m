@@ -6,6 +6,7 @@ static const NSInteger Columns = 8;
 static const NSInteger Rows = 11;
 static const NSTimeInterval FrameStep = 0.14;
 static const CGFloat GazeMargin = 60.0;
+static const CGFloat DockGap = 0.0;
 
 typedef NS_ENUM(NSInteger, PetState) {
     PetIdle, PetRap, PetSinging, PetReview, PetWaiting, PetFailed,
@@ -129,7 +130,7 @@ typedef NS_ENUM(NSInteger, PetState) {
     CGFloat x = NSMaxX(visible) - NSWidth(frame) - 24.0;
     CGFloat minY = MAX(NSMinY(screenFrame), NSMinY(visible));
     CGFloat maxY = NSMaxY(screenFrame) - NSHeight(frame);
-    CGFloat y = MIN(MAX(NSMinY(visible) + 6.0, minY), maxY);
+    CGFloat y = MIN(MAX(NSMinY(visible) + DockGap, minY), maxY);
     [self.window setFrameOrigin:NSMakePoint(x, y)];
 }
 
