@@ -9,7 +9,7 @@ static const NSInteger Columns = 8;
 static const NSInteger Rows = 11;
 static const NSTimeInterval FrameStep = 0.14;
 static const CGFloat GazeMargin = 60.0;
-static const CGFloat DockGap = -30.0;
+static const CGFloat DockGap = -70.0;
 
 typedef NS_ENUM(NSInteger, PetState) {
     PetIdle, PetRap, PetSinging, PetReview, PetWaiting, PetFailed,
