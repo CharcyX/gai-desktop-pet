@@ -9,6 +9,8 @@ static const NSInteger Columns = 8;
 static const NSInteger Rows = 11;
 static const NSTimeInterval FrameStep = 0.14;
 static const CGFloat GazeMargin = 60.0;
+static const CGFloat GazeAnchorY = 0.73;
+static const CGFloat GazeHysteresis = 4.0;
 static const CGFloat DockGap = -70.0;
 
 typedef NS_ENUM(NSInteger, PetState) {
@@ -61,6 +63,7 @@ typedef NS_ENUM(NSInteger, PetState) {
     [super drawRect:dirtyRect];
     PetController *c = self.controller;
     if (!c.atlas) return;
+    [NSGraphicsContext currentContext].imageInterpolation = NSImageInterpolationHigh;
     NSInteger index = [c atlasIndex];
     NSInteger col = index % Columns;
     NSInteger row = index / Columns;
@@ -206,7 +209,7 @@ typedef NS_ENUM(NSInteger, PetState) {
     NSRect rect = self.window.frame;
     BOOL inside = NSPointInRect(mouse, rect);
     CGFloat outsideDistance = [self outsideDistanceForPoint:mouse rect:rect];
-    NSPoint center = NSMakePoint(NSMidX(rect), NSMidY(rect));
+    NSPoint center = NSMakePoint(NSMidX(rect), NSMinY(rect) + NSHeight(rect) * GazeAnchorY);
 
     if (inside && !self.dragging) {
         if (!self.hoverActive) {
@@ -219,6 +222,12 @@ typedef NS_ENUM(NSInteger, PetState) {
         CGFloat degrees = atan2(mouse.x - center.x, mouse.y - center.y) * 180.0 / M_PI;
         if (degrees < 0) degrees += 360;
         NSInteger direction = ((NSInteger)llround(degrees / 22.5)) % 16;
+        if (self.state == PetGaze) {
+            CGFloat currentDegrees = self.frame * 22.5;
+            CGFloat delta = fabs(degrees - currentDegrees);
+            if (delta > 180.0) delta = 360.0 - delta;
+            if (delta < 11.25 + GazeHysteresis) direction = self.frame;
+        }
         if (self.state != PetGaze || self.frame != direction) {
             self.state = PetGaze; self.frame = direction; self.stateStarted = now;
             [self.view setNeedsDisplay:YES];
