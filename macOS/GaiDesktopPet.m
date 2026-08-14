@@ -286,7 +286,7 @@ typedef NS_ENUM(NSInteger, PetState) {
     NSRect screenFrame = screen.frame;
     CGFloat x = MIN(MAX(NSMinX(visible), self.windowStart.x + totalDX),
                     NSMaxX(visible) - WindowW);
-    CGFloat minY = MAX(NSMinY(screenFrame), NSMinY(visible));
+    CGFloat minY = NSMinY(screenFrame);
     CGFloat maxY = MIN(NSMaxY(visible), NSMaxY(screenFrame)) - WindowH;
     CGFloat y = MIN(MAX(minY, self.windowStart.y + totalDY), maxY);
     [self.window setFrameOrigin:NSMakePoint(x, y)];
