@@ -94,8 +94,11 @@ typedef NS_ENUM(NSInteger, PetState) {
     self.window.backgroundColor = [NSColor clearColor];
     self.window.opaque = NO;
     self.window.hasShadow = NO;
-    self.window.level = NSStatusWindowLevel;
-    self.window.collectionBehavior = NSWindowCollectionBehaviorCanJoinAllSpaces | NSWindowCollectionBehaviorStationary;
+    self.window.level = NSDockWindowLevel + 1;
+    self.window.collectionBehavior = NSWindowCollectionBehaviorCanJoinAllSpaces |
+                                      NSWindowCollectionBehaviorFullScreenAuxiliary |
+                                      NSWindowCollectionBehaviorStationary |
+                                      NSWindowCollectionBehaviorIgnoresCycle;
     self.state = PetIdle;
     [self enterIdle];
     return self;
@@ -105,8 +108,9 @@ typedef NS_ENUM(NSInteger, PetState) {
     [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(placeAboveDock:)
-                                                 name:NSApplicationDidChangeScreenParametersNotification
-                                               object:nil];
+                                             name:NSApplicationDidChangeScreenParametersNotification
+                                             object:nil];
+    [self.window setLevel:NSDockWindowLevel + 1];
     [self.window orderFrontRegardless];
     [self placeAboveDock:nil];
     [self performSelector:@selector(placeAboveDock:) withObject:nil afterDelay:0.1];
@@ -120,9 +124,12 @@ typedef NS_ENUM(NSInteger, PetState) {
 - (void)placeAboveDock:(id)sender {
     NSScreen *screen = self.window.screen ?: NSScreen.mainScreen;
     NSRect visible = screen.visibleFrame;
+    NSRect screenFrame = screen.frame;
     NSRect frame = self.window.frame;
     CGFloat x = NSMaxX(visible) - NSWidth(frame) - 24.0;
-    CGFloat y = NSMinY(visible) + 2.0;
+    CGFloat minY = MAX(NSMinY(screenFrame), NSMinY(visible));
+    CGFloat maxY = NSMaxY(screenFrame) - NSHeight(frame);
+    CGFloat y = MIN(MAX(NSMinY(visible) + 6.0, minY), maxY);
     [self.window setFrameOrigin:NSMakePoint(x, y)];
 }
 
@@ -272,10 +279,12 @@ typedef NS_ENUM(NSInteger, PetState) {
     CGFloat stepDX = p.x - self.lastDragPoint.x;
     NSScreen *screen = self.window.screen ?: NSScreen.mainScreen;
     NSRect visible = screen.visibleFrame;
+    NSRect screenFrame = screen.frame;
     CGFloat x = MIN(MAX(NSMinX(visible), self.windowStart.x + totalDX),
                     NSMaxX(visible) - CellW);
-    CGFloat y = MIN(MAX(NSMinY(visible), self.windowStart.y + totalDY),
-                    NSMaxY(visible) - CellH);
+    CGFloat minY = MAX(NSMinY(screenFrame), NSMinY(visible));
+    CGFloat maxY = MIN(NSMaxY(visible), NSMaxY(screenFrame)) - CellH;
+    CGFloat y = MIN(MAX(minY, self.windowStart.y + totalDY), maxY);
     [self.window setFrameOrigin:NSMakePoint(x, y)];
     if (fabs(stepDX) >= 1.0) {
         PetState direction = stepDX > 0 ? PetRunningRight : PetRunningLeft;
