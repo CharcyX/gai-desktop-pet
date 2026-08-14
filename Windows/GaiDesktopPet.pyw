@@ -5,8 +5,8 @@ import time
 import tkinter as tk
 
 CELL_W, CELL_H = 192, 208
-DISPLAY_W, DISPLAY_H = 240, 260
-DISPLAY_Y_OFFSET = 8
+DISPLAY_W, DISPLAY_H = 288, 312
+DISPLAY_Y_OFFSET = 10
 COLS, ROWS = 8, 11
 GAZE_MARGIN = 60
 KEY = "#D12AFF"
@@ -131,7 +131,7 @@ class GaiPet:
                                  col * CELL_W, row * CELL_H,
                                  (col + 1) * CELL_W, (row + 1) * CELL_H)
         self.source_frame_image = source_frame
-        self.frame_image = source_frame.zoom(5).subsample(4)
+        self.frame_image = source_frame.zoom(3).subsample(2)
         self.canvas.coords(self.image, 0, DISPLAY_Y_OFFSET)
         self.canvas.itemconfigure(self.image, image=self.frame_image)
 
