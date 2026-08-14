@@ -1,9 +1,12 @@
 import math
+import ctypes
 import os
 import time
 import tkinter as tk
 
 CELL_W, CELL_H = 192, 208
+DISPLAY_W, DISPLAY_H = 240, 260
+DISPLAY_Y_OFFSET = 8
 COLS, ROWS = 8, 11
 GAZE_MARGIN = 60
 KEY = "#D12AFF"
@@ -15,8 +18,14 @@ class GaiPet:
         root.overrideredirect(True)
         root.attributes("-topmost", True)
         root.configure(bg=KEY)
+        # Windows removes this key color from the borderless window, leaving
+        # the RGBA sprite visible without a magenta rectangle behind it.
+        try:
+            root.wm_attributes("-transparentcolor", KEY)
+        except tk.TclError:
+            pass
         root.resizable(False, False)
-        self.canvas = tk.Canvas(root, width=CELL_W, height=CELL_H, bg=KEY,
+        self.canvas = tk.Canvas(root, width=DISPLAY_W, height=DISPLAY_H, bg=KEY,
                                 highlightthickness=0, bd=0)
         self.canvas.pack()
         self.atlas = tk.PhotoImage(file=atlas_path)
@@ -47,8 +56,28 @@ class GaiPet:
         self.tick()
 
     def place_bottom_right(self):
-        sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
-        self.root.geometry(f"{CELL_W}x{CELL_H}+{sw-CELL_W-24}+{sh-CELL_H-48}")
+        left, top, right, bottom = self.work_area()
+        self.root.geometry(
+            f"{DISPLAY_W}x{DISPLAY_H}+{right-DISPLAY_W-24}+{bottom-DISPLAY_H}"
+        )
+
+    def work_area(self):
+        class Rect(ctypes.Structure):
+            _fields_ = [("left", ctypes.c_long), ("top", ctypes.c_long),
+                        ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
+
+        work_area = Rect()
+        got_work_area = ctypes.windll.user32.SystemParametersInfoW(
+            0x0030, 0, ctypes.byref(work_area), 0
+        )
+        if got_work_area:
+            left, top = work_area.left, work_area.top
+            right, bottom = work_area.right, work_area.bottom
+        else:
+            left, top = 0, 0
+            right = self.root.winfo_screenwidth()
+            bottom = self.root.winfo_screenheight()
+        return left, top, right, bottom
 
     def enter_idle(self):
         self.state, self.frame = "idle", 0
@@ -97,18 +126,24 @@ class GaiPet:
     def draw(self):
         idx = self.atlas_index()
         col, row = idx % COLS, idx // COLS
-        self.frame_image = tk.PhotoImage()
-        self.frame_image.tk.call(self.frame_image, "copy", self.atlas, "-from",
+        source_frame = tk.PhotoImage()
+        source_frame.tk.call(source_frame, "copy", self.atlas, "-from",
                                  col * CELL_W, row * CELL_H,
                                  (col + 1) * CELL_W, (row + 1) * CELL_H)
+        self.source_frame_image = source_frame
+        self.frame_image = source_frame.zoom(5).subsample(4)
+        self.canvas.coords(self.image, 0, DISPLAY_Y_OFFSET)
         self.canvas.itemconfigure(self.image, image=self.frame_image)
 
     def mouse_info(self):
         px, py = self.root.winfo_pointerx(), self.root.winfo_pointery()
         x, y = self.root.winfo_rootx(), self.root.winfo_rooty()
-        inside = x <= px < x + CELL_W and y <= py < y + CELL_H
-        cx, cy = x + CELL_W / 2, y + CELL_H / 2
-        return px, py, cx, cy, inside, math.hypot(px - cx, py - cy)
+        inside = x <= px < x + DISPLAY_W and y <= py < y + DISPLAY_H
+        cx, cy = x + DISPLAY_W / 2, y + DISPLAY_H / 2
+        dx = max(x - px, 0, px - (x + DISPLAY_W))
+        dy = max(y - py, 0, py - (y + DISPLAY_H))
+        outside_distance = math.hypot(dx, dy)
+        return px, py, cx, cy, inside, outside_distance
 
     def gaze_direction(self, px, py, cx, cy):
         deg = math.degrees(math.atan2(px - cx, cy - py)) % 360
@@ -189,7 +224,10 @@ class GaiPet:
         dx = event.x_root - self.drag_start[0]
         dy = event.y_root - self.drag_start[1]
         step_dx = event.x_root - self.last_drag_point[0]
-        self.root.geometry(f"+{self.window_start[0]+dx}+{self.window_start[1]+dy}")
+        left, top, right, bottom = self.work_area()
+        new_x = max(left, min(right - DISPLAY_W, self.window_start[0] + dx))
+        new_y = max(top, min(bottom - DISPLAY_H, self.window_start[1] + dy))
+        self.root.geometry(f"+{new_x}+{new_y}")
         if abs(step_dx) >= 1:
             state = "running-right" if step_dx > 0 else "running-left"
             if self.state != state:
@@ -213,6 +251,10 @@ def main():
     atlas = os.path.join(root_dir, "spritesheet.png")
     if not os.path.exists(atlas):
         raise SystemExit("spritesheet.png is missing")
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    except (AttributeError, OSError):
+        pass
     root = tk.Tk()
     GaiPet(root, atlas)
     root.mainloop()

@@ -47,6 +47,7 @@ typedef NS_ENUM(NSInteger, PetState) {
 - (void)continueDrag:(NSEvent *)event;
 - (void)endDrag;
 - (void)quit;
+- (void)placeAboveDock:(id)sender;
 - (NSInteger)atlasIndex;
 @end
 
@@ -93,7 +94,7 @@ typedef NS_ENUM(NSInteger, PetState) {
     self.window.backgroundColor = [NSColor clearColor];
     self.window.opaque = NO;
     self.window.hasShadow = NO;
-    self.window.level = NSFloatingWindowLevel;
+    self.window.level = NSStatusWindowLevel;
     self.window.collectionBehavior = NSWindowCollectionBehaviorCanJoinAllSpaces | NSWindowCollectionBehaviorStationary;
     self.state = PetIdle;
     [self enterIdle];
@@ -102,15 +103,27 @@ typedef NS_ENUM(NSInteger, PetState) {
 
 - (void)applicationDidFinishLaunching:(NSNotification *)note {
     [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
-    NSScreen *screen = NSScreen.mainScreen;
-    NSRect visible = screen.visibleFrame;
-    [self.window setFrameOrigin:NSMakePoint(NSMaxX(visible) - CellW - 24, NSMinY(visible) + 18)];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(placeAboveDock:)
+                                                 name:NSApplicationDidChangeScreenParametersNotification
+                                               object:nil];
     [self.window orderFrontRegardless];
+    [self placeAboveDock:nil];
+    [self performSelector:@selector(placeAboveDock:) withObject:nil afterDelay:0.1];
     self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0 / 15.0
                                                    target:self
                                                  selector:@selector(tick:)
                                                  userInfo:nil
                                                   repeats:YES];
+}
+
+- (void)placeAboveDock:(id)sender {
+    NSScreen *screen = self.window.screen ?: NSScreen.mainScreen;
+    NSRect visible = screen.visibleFrame;
+    NSRect frame = self.window.frame;
+    CGFloat x = NSMaxX(visible) - NSWidth(frame) - 24.0;
+    CGFloat y = NSMinY(visible) + 2.0;
+    [self.window setFrameOrigin:NSMakePoint(x, y)];
 }
 
 - (NSInteger)atlasIndex {
@@ -257,7 +270,13 @@ typedef NS_ENUM(NSInteger, PetState) {
     CGFloat totalDX = p.x - self.dragStart.x;
     CGFloat totalDY = p.y - self.dragStart.y;
     CGFloat stepDX = p.x - self.lastDragPoint.x;
-    [self.window setFrameOrigin:NSMakePoint(self.windowStart.x + totalDX, self.windowStart.y + totalDY)];
+    NSScreen *screen = self.window.screen ?: NSScreen.mainScreen;
+    NSRect visible = screen.visibleFrame;
+    CGFloat x = MIN(MAX(NSMinX(visible), self.windowStart.x + totalDX),
+                    NSMaxX(visible) - CellW);
+    CGFloat y = MIN(MAX(NSMinY(visible), self.windowStart.y + totalDY),
+                    NSMaxY(visible) - CellH);
+    [self.window setFrameOrigin:NSMakePoint(x, y)];
     if (fabs(stepDX) >= 1.0) {
         PetState direction = stepDX > 0 ? PetRunningRight : PetRunningLeft;
         if (self.state != direction) [self startState:direction];

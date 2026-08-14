@@ -23,4 +23,6 @@ macOS：双击 `macOS/GaiDesktopPet.app`。
 
 Windows：安装 Python 3 后双击 `Windows/start-gai.bat`。
 
+Codex 桌宠：将 `codex-pet/` 放入 `%USERPROFILE%\\.codex\\pets\\gai-rough-v2\\` 后重启 Codex；本机安装包按此目录结构提供。
+
 macOS 和 Windows 版都不需要额外 pip 包。

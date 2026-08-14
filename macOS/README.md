@@ -2,6 +2,8 @@
 
 macOS 桌宠。双击 `GaiDesktopPet.app` 启动；右键宠物退出；按住左键拖动位置。应用编译为 Apple Silicon 与 Intel 通用二进制。
 
+窗口会固定在 Dock 上方的可见工作区内，启动后会重新校正位置；拖动时也不会越过 Dock 或屏幕边界。
+
 触发逻辑：
 
 - 平时播放 idle。
