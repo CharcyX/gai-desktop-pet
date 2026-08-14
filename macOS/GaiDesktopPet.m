@@ -2,14 +2,14 @@
 
 static const CGFloat CellW = 192.0;
 static const CGFloat CellH = 208.0;
-static const CGFloat PetScale = 1.15;
+static const CGFloat PetScale = 1.08;
 static const CGFloat WindowW = CellW * PetScale;
 static const CGFloat WindowH = CellH * PetScale;
 static const NSInteger Columns = 8;
 static const NSInteger Rows = 11;
 static const NSTimeInterval FrameStep = 0.14;
 static const CGFloat GazeMargin = 60.0;
-static const CGFloat DockGap = -23.0;
+static const CGFloat DockGap = -35.0;
 
 typedef NS_ENUM(NSInteger, PetState) {
     PetIdle, PetRap, PetSinging, PetReview, PetWaiting, PetFailed,
