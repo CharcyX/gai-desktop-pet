@@ -2,11 +2,14 @@
 
 static const CGFloat CellW = 192.0;
 static const CGFloat CellH = 208.0;
+static const CGFloat PetScale = 1.15;
+static const CGFloat WindowW = CellW * PetScale;
+static const CGFloat WindowH = CellH * PetScale;
 static const NSInteger Columns = 8;
 static const NSInteger Rows = 11;
 static const NSTimeInterval FrameStep = 0.14;
 static const CGFloat GazeMargin = 60.0;
-static const CGFloat DockGap = 0.0;
+static const CGFloat DockGap = -8.0;
 
 typedef NS_ENUM(NSInteger, PetState) {
     PetIdle, PetRap, PetSinging, PetReview, PetWaiting, PetFailed,
@@ -84,11 +87,11 @@ typedef NS_ENUM(NSInteger, PetState) {
     if (!self) return nil;
     NSURL *url = [[NSBundle mainBundle] URLForResource:@"spritesheet" withExtension:@"png"];
     self.atlas = [[NSImage alloc] initWithContentsOfURL:url];
-    self.window = [[PetWindow alloc] initWithContentRect:NSMakeRect(0, 0, CellW, CellH)
+    self.window = [[PetWindow alloc] initWithContentRect:NSMakeRect(0, 0, WindowW, WindowH)
                                                  styleMask:NSWindowStyleMaskBorderless
                                                    backing:NSBackingStoreBuffered
                                                      defer:NO];
-    self.view = [[PetView alloc] initWithFrame:NSMakeRect(0, 0, CellW, CellH)];
+    self.view = [[PetView alloc] initWithFrame:NSMakeRect(0, 0, WindowW, WindowH)];
     self.view.controller = self;
     self.window.controller = self;
     self.window.contentView = self.view;
@@ -282,9 +285,9 @@ typedef NS_ENUM(NSInteger, PetState) {
     NSRect visible = screen.visibleFrame;
     NSRect screenFrame = screen.frame;
     CGFloat x = MIN(MAX(NSMinX(visible), self.windowStart.x + totalDX),
-                    NSMaxX(visible) - CellW);
+                    NSMaxX(visible) - WindowW);
     CGFloat minY = MAX(NSMinY(screenFrame), NSMinY(visible));
-    CGFloat maxY = MIN(NSMaxY(visible), NSMaxY(screenFrame)) - CellH;
+    CGFloat maxY = MIN(NSMaxY(visible), NSMaxY(screenFrame)) - WindowH;
     CGFloat y = MIN(MAX(minY, self.windowStart.y + totalDY), maxY);
     [self.window setFrameOrigin:NSMakePoint(x, y)];
     if (fabs(stepDX) >= 1.0) {
