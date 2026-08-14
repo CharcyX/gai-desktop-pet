@@ -63,7 +63,7 @@ typedef NS_ENUM(NSInteger, PetState) {
     [super drawRect:dirtyRect];
     PetController *c = self.controller;
     if (!c.atlas) return;
-    [NSGraphicsContext currentContext].imageInterpolation = NSImageInterpolationHigh;
+    [NSGraphicsContext currentContext].imageInterpolation = NSImageInterpolationNone;
     NSInteger index = [c atlasIndex];
     NSInteger col = index % Columns;
     NSInteger row = index / Columns;
