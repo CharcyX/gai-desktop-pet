@@ -9,6 +9,8 @@ DISPLAY_W, DISPLAY_H = 288, 312
 DISPLAY_Y_OFFSET = 10
 COLS, ROWS = 8, 11
 GAZE_MARGIN = 60
+GAZE_ANCHOR_Y = 0.30
+GAZE_HYSTERESIS = 4.0
 KEY = "#D12AFF"
 
 
@@ -139,7 +141,7 @@ class GaiPet:
         px, py = self.root.winfo_pointerx(), self.root.winfo_pointery()
         x, y = self.root.winfo_rootx(), self.root.winfo_rooty()
         inside = x <= px < x + DISPLAY_W and y <= py < y + DISPLAY_H
-        cx, cy = x + DISPLAY_W / 2, y + DISPLAY_H / 2
+        cx, cy = x + DISPLAY_W / 2, y + DISPLAY_H * GAZE_ANCHOR_Y
         dx = max(x - px, 0, px - (x + DISPLAY_W))
         dy = max(y - py, 0, py - (y + DISPLAY_H))
         outside_distance = math.hypot(dx, dy)
@@ -170,6 +172,13 @@ class GaiPet:
                 self.start("rap")
         elif not inside and 0 < distance <= GAZE_MARGIN and not self.dragging:
             direction = self.gaze_direction(px, py, cx, cy)
+            if self.state == "gaze":
+                current_degrees = self.frame * 22.5
+                delta = abs((math.degrees(math.atan2(px - cx, cy - py)) % 360) - current_degrees)
+                if delta > 180:
+                    delta = 360 - delta
+                if delta < 11.25 + GAZE_HYSTERESIS:
+                    direction = self.frame
             if self.state != "gaze" or self.frame != direction:
                 self.state, self.frame, self.started = "gaze", direction, now
                 self.draw()
