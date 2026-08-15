@@ -26,6 +26,8 @@ Gai 的独立桌宠文件，包含 Codex 宠物、macOS 版和 Windows 版。
 
 周延版沿用 GAI 的交互机制：idle 完整循环 6 次后固定播放 singing → waiting → failed，每个动作完整循环 3 次；悬停触发连续说唱，靠近但未悬停时触发 16 方向注视，左右拖拽即时切换跑步方向，悬停说唱累计 3 次或拖拽累计超过 7 秒后触发生气。周延版的 jumping 行改为唱歌帧。
 
+Codex 版周延图集保持与 GAI 一致的 2.5 头身比例，并在关键帧加入保持节拍以降低跳帧感。Codex 状态映射为：需要授权使用 waiting，思考使用 failed，failed 使用 waving；macOS 和 Windows 版仍沿用各自的交互逻辑与播放节奏。
+
 ## 启动
 
 macOS：双击 `macOS/GaiDesktopPet.app`。
