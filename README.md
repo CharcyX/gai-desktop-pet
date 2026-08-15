@@ -17,6 +17,15 @@ Gai 的独立桌宠文件，包含 Codex 宠物、macOS 版和 Windows 版。
 - `Windows/`：Python 3 + Tk 版桌宠。
 - `releases/`：macOS 与 Windows 压缩包。
 
+## 周延独立桌宠
+
+- `zhou-yan/codex-pet/`：周延 Codex v2 宠物文件。
+- `zhou-yan/macOS/`：周延 macOS 独立桌宠源码、通用 App 构建脚本和资源。
+- `zhou-yan/Windows/`：周延 Windows Python/Tk 桌宠和启动文件。
+- `releases/zhou-yan-desktop-pet-macos.zip`、`releases/zhou-yan-desktop-pet-windows.zip`：周延发布包。
+
+周延版沿用 GAI 的交互机制：idle 完整循环 6 次后固定播放 singing → waiting → failed，每个动作完整循环 3 次；悬停触发连续说唱，靠近但未悬停时触发 16 方向注视，左右拖拽即时切换跑步方向，悬停说唱累计 3 次或拖拽累计超过 7 秒后触发生气。周延版的 jumping 行改为唱歌帧。
+
 ## 启动
 
 macOS：双击 `macOS/GaiDesktopPet.app`。
